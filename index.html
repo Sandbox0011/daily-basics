@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Daily basics</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#2F5BD3">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@600;700&display=swap" rel="stylesheet">
@@ -70,6 +74,9 @@ input{font:inherit;margin-top:4px;padding:8px 10px;border:1px solid var(--line);
   background:var(--bg);color:var(--ink);width:100%;max-width:200px}
 .status{color:var(--muted);font-size:.85rem;margin-top:14px}
 button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.backup{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 4px}
+.backup button{background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:10px;
+  padding:9px 12px;font:inherit;font-size:.9rem;font-weight:500;cursor:pointer}
 .reset{background:none;border:0;color:var(--muted);text-decoration:underline;font:inherit;font-size:.88rem;cursor:pointer;padding:0;margin-top:6px}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
 </style>
@@ -102,6 +109,14 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
         <span>Check your phone's step count before ticking</span>
         <input type="number" id="steps" min="1000" step="500" inputmode="numeric">
       </label>
+      <label>Backup
+        <span>Move your data between devices, or keep a copy</span>
+      </label>
+      <div class="backup">
+        <button id="export">Export data</button>
+        <button id="import">Import data</button>
+        <input type="file" id="importFile" accept="application/json,.json" hidden>
+      </div>
       <button class="reset" id="relock">Lock the last habit again</button>
       <p class="status" id="status">Loading…</p>
     </div>
@@ -226,6 +241,41 @@ $("next").onclick = ()=>{ viewOffset++; render(); };
 $("wake").onchange = e=>{ state.settings.wake = e.target.value || "07:00"; save(); render(); };
 $("steps").onchange = e=>{ const v = parseInt(e.target.value,10); if(v>0){ state.settings.steps=v; save(); render(); } };
 $("relock").onclick = ()=>{ if(state.unlocked>1){ state.unlocked--; save(); render(); } };
+
+// backup: export / import (import merges, never deletes ticked days)
+$("export").onclick = ()=>{
+  const blob = new Blob([JSON.stringify(state,null,2)], {type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `daily-basics-${dateKey(0)}.json`;
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+  $("status").textContent = "Exported a backup file.";
+};
+$("import").onclick = ()=> $("importFile").click();
+$("importFile").onchange = async e=>{
+  const f = e.target.files[0]; e.target.value = "";
+  if(!f) return;
+  try{
+    const inc = JSON.parse(await f.text());
+    if(!inc || typeof inc.days !== "object") throw new Error("bad file");
+    const days = Object.assign({}, state.days);
+    for(const k in inc.days){ days[k] = Object.assign({}, days[k]||{}, inc.days[k]); }
+    state = {
+      unlocked: Math.max(inc.unlocked||1, state.unlocked||1),
+      settings: Object.assign({}, state.settings, inc.settings||{}),
+      days
+    };
+    save(); render();
+    $("status").textContent = "Imported and merged your backup.";
+  }catch(err){
+    $("status").textContent = "That file isn't a valid Daily basics backup.";
+  }
+};
+
+if("serviceWorker" in navigator && location.protocol.startsWith("http")){
+  navigator.serviceWorker.register("sw.js").catch(()=>{});
+}
 
 // local first
 try{
