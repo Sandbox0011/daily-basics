@@ -1,0 +1,13 @@
+{
+  "name": "Daily basics",
+  "short_name": "Daily basics",
+  "description": "A one-habit-at-a-time daily tracker.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ECEFF3",
+  "theme_color": "#2F5BD3",
+  "icons": [
+    {"src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable"}
+  ]
+}
