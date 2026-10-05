@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Daily basics</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Semi+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ECEFF3; --surface:#FFFFFF; --ink:#18202D; --muted:#6B7484; --line:#D5DAE2;
+  --accent:#2F5BD3; --done:#1E8A6E; --done-soft:#D7EFE7; --locked:#C3C9D3;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#121722; --surface:#1B2230; --ink:#E8ECF2; --muted:#98A1B2; --line:#2B3445;
+    --accent:#7C9BF0; --done:#3CB892; --done-soft:#173A31; --locked:#3A4354;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121722; --surface:#1B2230; --ink:#E8ECF2; --muted:#98A1B2; --line:#2B3445;
+  --accent:#7C9BF0; --done:#3CB892; --done-soft:#173A31; --locked:#3A4354;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:17px;line-height:1.45}
+main{max-width:560px;margin:0 auto;padding:20px 16px 48px}
+h1,h2{font-family:"Barlow Semi Condensed","Barlow",system-ui,sans-serif;margin:0;letter-spacing:.01em}
+h1{font-size:2rem;line-height:1.1}
+h2{font-size:1.25rem;margin-bottom:10px}
+.daynav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.daynav button{background:none;border:1px solid var(--line);color:var(--ink);border-radius:10px;
+  width:44px;height:44px;font-size:1.2rem;cursor:pointer}
+.daynav button:disabled{opacity:.35;cursor:default}
+.sub{color:var(--muted);margin:0 0 18px}
+.habits{display:flex;flex-direction:column;gap:10px;margin-bottom:28px}
+.habit{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:var(--surface);
+  border:2px solid var(--line);border-radius:14px;padding:14px 16px;color:var(--ink);font:inherit;cursor:pointer;
+  transition:background .15s,border-color .15s}
+.habit .tick{flex:none;width:34px;height:34px;border-radius:50%;border:2px solid var(--line);
+  display:grid;place-items:center;font-weight:700;color:transparent}
+.habit[aria-pressed="true"]{border-color:var(--done);background:var(--done-soft)}
+.habit[aria-pressed="true"] .tick{background:var(--done);border-color:var(--done);color:#fff}
+.habit .name{font-weight:600;display:block}
+.habit .detail{color:var(--muted);font-size:.92rem}
+.habit.locked{cursor:default;border-style:dashed;background:transparent}
+.habit.locked .name{color:var(--muted)}
+.habit.locked .tick{border-color:var(--locked)}
+.unlock{margin-left:auto;flex:none;background:var(--accent);color:#fff;border:0;border-radius:10px;
+  padding:9px 12px;font:inherit;font-weight:600;font-size:.9rem;cursor:pointer}
+.next-hint{color:var(--muted);font-size:.92rem;margin:-2px 0 0 4px}
+section{margin-bottom:28px}
+.grid{overflow-x:auto}
+table{border-collapse:separate;border-spacing:4px;width:100%}
+th{font-weight:500;color:var(--muted);font-size:.8rem;text-align:center}
+th.row{text-align:left;color:var(--ink);font-size:.92rem;white-space:nowrap;padding-right:6px}
+td{text-align:center}
+.dot{display:inline-block;width:22px;height:22px;border-radius:6px;background:var(--line)}
+.dot.on{background:var(--done)}
+.dot.today{outline:2px solid var(--accent);outline-offset:1px}
+.stats{color:var(--muted);font-size:.92rem;margin-top:8px}
+.settings{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
+label{display:block;font-weight:500;margin-bottom:12px}
+label span{display:block;color:var(--muted);font-size:.88rem;font-weight:400}
+input{font:inherit;margin-top:4px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;
+  background:var(--bg);color:var(--ink);width:100%;max-width:200px}
+.status{color:var(--muted);font-size:.85rem;margin-top:14px}
+button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.reset{background:none;border:0;color:var(--muted);text-decoration:underline;font:inherit;font-size:.88rem;cursor:pointer;padding:0;margin-top:6px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+  <div class="daynav">
+    <button id="prev" aria-label="Previous day">‹</button>
+    <h1 id="dayTitle">Today</h1>
+    <button id="next" aria-label="Next day">›</button>
+  </div>
+  <p class="sub" id="daySub"></p>
+
+  <div class="habits" id="habits"></div>
+
+  <section>
+    <h2>Last 14 days</h2>
+    <div class="grid"><table id="grid"></table></div>
+    <p class="stats" id="stats"></p>
+  </section>
+
+  <section>
+    <h2>Targets</h2>
+    <div class="settings">
+      <label>Wake-up time
+        <span>Up by this time counts as done</span>
+        <input type="time" id="wake">
+      </label>
+      <label>Daily steps
+        <span>Check your phone's step count before ticking</span>
+        <input type="number" id="steps" min="1000" step="500" inputmode="numeric">
+      </label>
+      <button class="reset" id="relock">Lock the last habit again</button>
+      <p class="status" id="status">Loading…</p>
+    </div>
+  </section>
+</main>
+
+<script>
+const HABITS = [
+  {key:"sleep", name:"Up on time", detail: s => `Awake by ${s.wake}`},
+  {key:"session", name:"Planned session done", detail: () => "BJJ, kettlebells, or a planned rest day"},
+  {key:"food", name:"Food logged", detail: () => "Everything in the app, no skipping"},
+  {key:"steps", name:"Step target hit", detail: s => `${Number(s.steps).toLocaleString()} steps`}
+];
+const READY_AFTER = 10; // days done in last 14 before suggesting the next habit
+
+let state = {unlocked:1, settings:{wake:"07:00", steps:8000}, days:{}};
+let viewOffset = 0; // 0 = today
+let db = null, docRef = null, saveTimer = null;
+
+const $ = id => document.getElementById(id);
+const pad = n => String(n).padStart(2,"0");
+function dateKey(offset){
+  const d = new Date(); d.setDate(d.getDate() + offset);
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
+function dateObj(offset){ const d = new Date(); d.setDate(d.getDate()+offset); return d; }
+
+function countLast14(key){
+  let n = 0;
+  for(let i=-13;i<=0;i++){ const d = state.days[dateKey(i)]; if(d && d[key]) n++; }
+  return n;
+}
+
+function render(){
+  const key = dateKey(viewOffset);
+  const d = dateObj(viewOffset);
+  $("dayTitle").textContent = viewOffset===0 ? "Today" : viewOffset===-1 ? "Yesterday"
+    : d.toLocaleDateString("en-GB",{weekday:"long"});
+  $("daySub").textContent = d.toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"});
+  $("next").disabled = viewOffset>=0;
+  $("prev").disabled = viewOffset<=-13;
+
+  const day = state.days[key] || {};
+  const wrap = $("habits"); wrap.innerHTML = "";
+  HABITS.forEach((h,i)=>{
+    const active = i < state.unlocked;
+    const el = document.createElement(active ? "button" : "div");
+    el.className = "habit" + (active ? "" : " locked");
+    const tick = document.createElement("span"); tick.className="tick"; tick.textContent = active ? "✓" : "";
+    const text = document.createElement("span");
+    const nm = document.createElement("span"); nm.className="name"; nm.textContent = h.name;
+    const dt = document.createElement("span"); dt.className="detail";
+    dt.textContent = active ? h.detail(state.settings) : "Not started yet";
+    text.append(nm,dt); el.append(tick,text);
+    if(active){
+      el.setAttribute("aria-pressed", day[h.key] ? "true" : "false");
+      el.addEventListener("click", ()=>{
+        const cur = state.days[key] || {};
+        cur[h.key] = !cur[h.key];
+        state.days[key] = cur; save(); render();
+      });
+    } else if(i === state.unlocked){
+      const b = document.createElement("button"); b.className="unlock"; b.textContent="Start this";
+      b.addEventListener("click", ()=>{ state.unlocked++; save(); render(); });
+      el.append(b);
+    }
+    wrap.append(el);
+  });
+
+  // readiness hint
+  if(state.unlocked < HABITS.length){
+    const last = HABITS[state.unlocked-1];
+    const n = countLast14(last.key);
+    const p = document.createElement("p"); p.className="next-hint";
+    p.textContent = n >= READY_AFTER
+      ? `“${last.name}” is sticking (${n} of the last 14 days). Good time to start the next one.`
+      : `Start the next habit once “${last.name}” feels automatic — around ${READY_AFTER} of 14 days. You're on ${n}.`;
+    wrap.append(p);
+  }
+
+  // grid
+  const t = $("grid"); t.innerHTML = "";
+  const head = document.createElement("tr"); head.append(document.createElement("th"));
+  for(let i=-13;i<=0;i++){
+    const th = document.createElement("th");
+    th.textContent = dateObj(i).toLocaleDateString("en-GB",{weekday:"narrow"});
+    head.append(th);
+  }
+  t.append(head);
+  HABITS.slice(0,state.unlocked).forEach(h=>{
+    const tr = document.createElement("tr");
+    const th = document.createElement("th"); th.className="row"; th.textContent = h.name; tr.append(th);
+    for(let i=-13;i<=0;i++){
+      const td = document.createElement("td"); const s = document.createElement("span");
+      const on = (state.days[dateKey(i)]||{})[h.key];
+      s.className = "dot" + (on?" on":"") + (i===viewOffset?" today":"");
+      s.title = dateKey(i) + (on?" — done":"");
+      td.append(s); tr.append(td);
+    }
+    t.append(tr);
+  });
+  $("stats").textContent = HABITS.slice(0,state.unlocked)
+    .map(h=>`${h.name}: ${countLast14(h.key)}/14`).join("   ");
+
+  $("wake").value = state.settings.wake;
+  $("steps").value = state.settings.steps;
+  $("relock").hidden = state.unlocked <= 1;
+}
+
+function save(){
+  try{ localStorage.setItem("daily-basics", JSON.stringify(state)); }catch(e){}
+  if(!docRef) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async ()=>{
+    try{ await docRef.set(state); $("status").textContent = "Saved to your account."; }
+    catch(e){ $("status").textContent = "Couldn't save to your account — saved on this device only."; }
+  }, 500);
+}
+
+$("prev").onclick = ()=>{ viewOffset--; render(); };
+$("next").onclick = ()=>{ viewOffset++; render(); };
+$("wake").onchange = e=>{ state.settings.wake = e.target.value || "07:00"; save(); render(); };
+$("steps").onchange = e=>{ const v = parseInt(e.target.value,10); if(v>0){ state.settings.steps=v; save(); render(); } };
+$("relock").onclick = ()=>{ if(state.unlocked>1){ state.unlocked--; save(); render(); } };
+
+// local first
+try{
+  const raw = localStorage.getItem("daily-basics");
+  if(raw){ const s = JSON.parse(raw); if(s && s.days) state = Object.assign(state, s); }
+}catch(e){}
+render();
+$("status").textContent = "Saved on this device.";
+
+(async ()=>{
+  try{
+    if(!window.claude || !window.claude.use) return;
+    const [dbNs, user] = await Promise.all([claude.use("db"), claude.use("user")]);
+    if(!dbNs || !user) return;
+    const id = await user.id();
+    if(!id) return;
+    db = dbNs;
+    docRef = db.doc(`data/users/${id}/tracker/state`);
+    const snap = await docRef.get();
+    if(snap.exists){
+      const remote = snap.data();
+      // merge: keep any day ticked on either side
+      const days = Object.assign({}, remote.days||{});
+      for(const k in state.days){ days[k] = Object.assign({}, days[k]||{}, state.days[k]); }
+      state = {
+        unlocked: Math.max(remote.unlocked||1, state.unlocked||1),
+        settings: Object.assign({}, state.settings, remote.settings||{}),
+        days
+      };
+    }
+    render();
+    $("status").textContent = "Synced to your account — works on phone and laptop.";
+    save();
+  }catch(e){
+    $("status").textContent = "Saved on this device.";
+  }
+})();
+</script>
+</body>
+</html>
