@@ -15,6 +15,7 @@
 :root{
   --bg:#ECEFF3; --surface:#FFFFFF; --ink:#18202D; --muted:#6B7484; --line:#D5DAE2;
   --accent:#2F5BD3; --done:#1E8A6E; --done-soft:#D7EFE7; --locked:#C3C9D3;
+  --busy:#B9CAF6; --part:#DCE5FB; --danger:#B3402F;
   box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
 }
@@ -22,11 +23,13 @@
   :root:not([data-theme="light"]){
     --bg:#121722; --surface:#1B2230; --ink:#E8ECF2; --muted:#98A1B2; --line:#2B3445;
     --accent:#7C9BF0; --done:#3CB892; --done-soft:#173A31; --locked:#3A4354;
+    --busy:#34508F; --part:#26365C; --danger:#E27D6A;
   }
 }
 :root[data-theme="dark"]{
   --bg:#121722; --surface:#1B2230; --ink:#E8ECF2; --muted:#98A1B2; --line:#2B3445;
   --accent:#7C9BF0; --done:#3CB892; --done-soft:#173A31; --locked:#3A4354;
+    --busy:#34508F; --part:#26365C; --danger:#E27D6A;
 }
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *,*::before,*::after{box-sizing:inherit}
@@ -78,6 +81,53 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
 .backup button{background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:10px;
   padding:9px 12px;font:inherit;font-size:.9rem;font-weight:500;cursor:pointer}
 .reset{background:none;border:0;color:var(--muted);text-decoration:underline;font:inherit;font-size:.88rem;cursor:pointer;padding:0;margin-top:6px}
+/* week schedule */
+.weekhint{color:var(--muted);font-size:.92rem;margin:-4px 0 12px}
+#weekMap{border-spacing:3px}
+#weekMap th{font-size:.75rem;padding:0}
+#weekMap th.hr{text-align:right;padding-right:4px;width:1%;white-space:nowrap;font-variant-numeric:tabular-nums}
+#weekMap th.sel{color:var(--accent);font-weight:700}
+.wcell{display:block;height:16px;border-radius:4px;border:1px solid var(--line)}
+.wcell.part{background:var(--part);border-color:var(--part)}
+.wcell.busy{background:var(--busy);border-color:var(--busy)}
+.wcell.off{opacity:.35}
+#weekMap td.sel .wcell{box-shadow:0 0 0 1px var(--accent)}
+.daytabs{display:flex;gap:6px;margin:14px 0 12px}
+.daytabs button{flex:1 1 0;min-width:0;min-height:44px;padding:0;background:var(--surface);border:1px solid var(--line);
+  color:var(--ink);border-radius:10px;font:inherit;font-size:.9rem;font-weight:500;cursor:pointer}
+.daytabs button.today{border-color:var(--accent)}
+.daytabs button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.dayhead{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:0 0 8px}
+.dayhead strong{font-family:"Barlow Semi Condensed","Barlow",system-ui,sans-serif;font-size:1.15rem}
+.dayhead span{color:var(--muted);font-size:.9rem}
+.slots{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.slot{display:flex;gap:12px;align-items:center;width:100%;text-align:left;border-radius:12px;padding:10px 14px;
+  font:inherit;color:var(--ink);cursor:pointer;min-height:48px}
+.slot.block{background:var(--surface);border:1px solid var(--line)}
+.slot.free{background:transparent;border:2px dashed var(--line)}
+.slot .t{flex:none;min-width:6.6em;color:var(--muted);font-size:.92rem;font-variant-numeric:tabular-nums}
+.slot .n{font-weight:600;overflow-wrap:anywhere}
+.slot.free .n{font-weight:500;color:var(--muted)}
+.slot .d{margin-left:auto;flex:none;color:var(--muted);font-size:.85rem}
+.empty-week{color:var(--muted);font-size:.95rem;margin:0 0 12px}
+.addbtn{background:var(--accent);color:#fff;border:0;border-radius:10px;padding:10px 16px;min-height:44px;
+  font:inherit;font-weight:600;cursor:pointer}
+.ghost{background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:10px 16px;
+  min-height:44px;font:inherit;font-weight:500;cursor:pointer}
+.ghost.danger{color:var(--danger);margin-left:auto}
+.bform{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;margin-top:12px}
+.bform[hidden]{display:none}
+#bLabel{max-width:100%}
+.bform .times{display:flex;gap:12px}
+.bform .times label{flex:1}
+.lbl{font-weight:500;margin-bottom:6px}
+.lbl span{display:block;color:var(--muted);font-size:.88rem;font-weight:400}
+.chips{display:flex;gap:6px;margin:0 0 12px}
+.chips button{flex:1 1 0;min-width:0;min-height:44px;padding:0;background:var(--bg);border:1px solid var(--line);
+  color:var(--ink);border-radius:10px;font:inherit;font-size:.88rem;font-weight:500;cursor:pointer}
+.chips button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.bform .actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.msg{color:var(--danger);font-size:.9rem;min-height:1.3em;margin:0 0 6px}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
 </style>
 </head>
@@ -99,11 +149,42 @@ button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline
   </section>
 
   <section>
+    <h2>My week</h2>
+    <p class="weekhint">What a normal week looks like. Shaded = something on, empty = free. Tap a dashed gap to plan something into it.</p>
+    <div class="grid"><table id="weekMap" aria-label="Week overview, one row per hour"></table></div>
+    <div class="daytabs" id="dayTabs"></div>
+    <div class="dayhead"><strong id="dayName"></strong><span id="dayFree"></span></div>
+    <div class="slots" id="slots"></div>
+    <button class="addbtn" id="addBlock" type="button">+ Add to this day</button>
+    <form class="bform" id="blockForm" hidden>
+      <label>What
+        <input type="text" id="bLabel" maxlength="40" placeholder="Work, BJJ, dog walk…" autocomplete="off">
+      </label>
+      <div class="times">
+        <label>From <input type="time" id="bStart"></label>
+        <label>To <input type="time" id="bEnd"></label>
+      </div>
+      <div class="lbl">Days <span id="bDaysHint"></span></div>
+      <div class="chips" id="bDays"></div>
+      <p class="msg" id="bMsg" role="alert"></p>
+      <div class="actions">
+        <button class="addbtn" type="submit">Save</button>
+        <button class="ghost" type="button" id="bCancel">Cancel</button>
+        <button class="ghost danger" type="button" id="bDelete" hidden>Delete</button>
+      </div>
+    </form>
+  </section>
+
+  <section>
     <h2>Targets</h2>
     <div class="settings">
       <label>Wake-up time
         <span>Up by this time counts as done</span>
         <input type="time" id="wake">
+      </label>
+      <label>Bedtime
+        <span>Free gaps in your week are counted between wake-up and this</span>
+        <input type="time" id="bed">
       </label>
       <label>Daily steps
         <span>Check your phone's step count before ticking</span>
@@ -132,7 +213,7 @@ const HABITS = [
 ];
 const READY_AFTER = 10; // days done in last 14 before suggesting the next habit
 
-let state = {unlocked:1, settings:{wake:"07:00", steps:8000}, days:{}};
+let state = {unlocked:1, settings:{wake:"07:00", steps:8000, bed:"22:30"}, days:{}, schedule:{updated:0, blocks:[]}};
 let viewOffset = 0; // 0 = today
 let db = null, docRef = null, saveTimer = null;
 
@@ -223,8 +304,195 @@ function render(){
 
   $("wake").value = state.settings.wake;
   $("steps").value = state.settings.steps;
+  $("bed").value = state.settings.bed || "22:30";
   $("relock").hidden = state.unlocked <= 1;
+  renderWeek();
 }
+
+// ---- weekly schedule -------------------------------------------------
+const DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+const DAYS_LONG = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+const todayIdx = () => (new Date().getDay()+6)%7; // Mon = 0
+let selDay = todayIdx();
+let editId = null;          // id of the block being edited, null when adding
+let chipDays = new Set();   // days ticked in the form
+
+function toMin(t){ const [h,m] = String(t).split(":").map(Number); return h*60+m; }
+function fmt(m){ return `${pad(Math.floor(m/60))}:${pad(m%60)}`; }
+function dur(m){ const h = Math.floor(m/60), r = m%60; return h ? (r ? `${h}h ${r}m` : `${h}h`) : `${r}m`; }
+function newId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+function ensureShape(){
+  state.settings = Object.assign({wake:"07:00", steps:8000, bed:"22:30"}, state.settings);
+  const sc = state.schedule;
+  const ok = sc && Array.isArray(sc.blocks);
+  state.schedule = {
+    updated: ok && Number(sc.updated) || 0,
+    blocks: (ok ? sc.blocks : []).filter(b => b && Number.isInteger(b.day) && b.day>=0 && b.day<=6
+      && /^\d\d:\d\d$/.test(b.start) && /^\d\d:\d\d$/.test(b.end) && toMin(b.end) > toMin(b.start))
+      .map(b => ({id: String(b.id || newId()), day: b.day, start: b.start, end: b.end, label: String(b.label || "").slice(0,40)}))
+  };
+}
+// the schedule is edited as a whole, so the most recently edited copy wins
+function mergeSchedule(a, b){
+  const A = a && Array.isArray(a.blocks) ? a : {updated:0, blocks:[]};
+  const B = b && Array.isArray(b.blocks) ? b : {updated:0, blocks:[]};
+  return (Number(B.updated)||0) > (Number(A.updated)||0) ? B : A;
+}
+
+function dayBlocks(d){
+  return state.schedule.blocks.filter(b => b.day === d)
+    .sort((a,b) => toMin(a.start)-toMin(b.start) || toMin(a.end)-toMin(b.end));
+}
+function busyRanges(d){ // overlapping blocks merged into single ranges
+  const out = [];
+  for(const b of dayBlocks(d)){
+    const s = toMin(b.start), e = toMin(b.end), last = out[out.length-1];
+    if(last && s <= last[1]) last[1] = Math.max(last[1], e); else out.push([s,e]);
+  }
+  return out;
+}
+function awakeWindow(){ return [toMin(state.settings.wake || "07:00"), toMin(state.settings.bed || "22:30")]; }
+function freeGaps(d){ // gaps of 30+ minutes between wake-up and bedtime
+  const [ws,we] = awakeWindow();
+  if(we <= ws) return [];
+  const g = []; let cur = ws;
+  for(const [s,e] of busyRanges(d)){
+    if(e <= cur) continue;
+    if(s > cur) g.push([cur, Math.min(s,we)]);
+    cur = Math.max(cur, e);
+    if(cur >= we) break;
+  }
+  if(cur < we) g.push([cur, we]);
+  return g.filter(([s,e]) => e-s >= 30);
+}
+
+function renderWeek(){
+  const today = todayIdx();
+  const [ws,we] = awakeWindow();
+  const blocks = state.schedule.blocks;
+
+  // overview map: one row per hour, one column per day
+  const starts = blocks.map(b => toMin(b.start)), ends = blocks.map(b => toMin(b.end));
+  const lo = Math.max(0,  Math.floor(Math.min(ws, ...starts)/60));
+  const hi = Math.min(24, Math.ceil(Math.max(we, ...ends)/60));
+  const ranges = DAYS.map((_,d) => busyRanges(d));
+  const t = $("weekMap"); t.innerHTML = "";
+  const head = document.createElement("tr"); head.append(document.createElement("th"));
+  DAYS.forEach((n,i)=>{
+    const th = document.createElement("th"); th.textContent = n.slice(0,2); th.title = DAYS_LONG[i];
+    if(i === selDay) th.className = "sel";
+    head.append(th);
+  });
+  t.append(head);
+  for(let h=lo; h<hi; h++){
+    const tr = document.createElement("tr");
+    const th = document.createElement("th"); th.className = "hr"; th.textContent = pad(h); tr.append(th);
+    DAYS.forEach((_,d)=>{
+      let occ = 0;
+      for(const [s,e] of ranges[d]) occ += Math.max(0, Math.min(e, h*60+60) - Math.max(s, h*60));
+      const c = document.createElement("span"); c.className = "wcell";
+      if(occ >= 30) c.classList.add("busy"); else if(occ > 0) c.classList.add("part");
+      else if(h*60+60 <= ws || h*60 >= we) c.classList.add("off");
+      const td = document.createElement("td"); if(d === selDay) td.className = "sel";
+      td.append(c); tr.append(td);
+    });
+    t.append(tr);
+  }
+
+  // day tabs
+  const tabs = $("dayTabs"); tabs.innerHTML = "";
+  DAYS.forEach((n,i)=>{
+    const b = document.createElement("button"); b.type = "button"; b.textContent = n;
+    b.setAttribute("aria-pressed", i === selDay ? "true" : "false");
+    if(i === today) b.classList.add("today");
+    b.addEventListener("click", ()=>{ selDay = i; closeForm(); renderWeek(); });
+    tabs.append(b);
+  });
+
+  // the selected day: blocks and free gaps in time order
+  const gaps = freeGaps(selDay);
+  const freeTotal = gaps.reduce((n,[s,e]) => n + (e-s), 0);
+  $("dayName").textContent = DAYS_LONG[selDay] + (selDay === today ? " (today)" : "");
+  $("dayFree").textContent = freeTotal ? `${dur(freeTotal)} free` : "no free gaps";
+  const items = dayBlocks(selDay).map(b => ({s:toMin(b.start), e:toMin(b.end), b}))
+    .concat(gaps.map(([s,e]) => ({s, e, gap:true})))
+    .sort((a,b) => a.s - b.s);
+  const list = $("slots"); list.innerHTML = "";
+  if(!blocks.length){
+    const p = document.createElement("p"); p.className = "empty-week";
+    p.textContent = "Nothing here yet. Add the fixed parts of your week (work, training, your morning routine) and the free gaps will show up on their own.";
+    list.append(p);
+  }
+  items.forEach(it=>{
+    const el = document.createElement("button"); el.type = "button";
+    el.className = "slot " + (it.gap ? "free" : "block");
+    const tm = document.createElement("span"); tm.className = "t"; tm.textContent = `${fmt(it.s)}–${fmt(it.e)}`;
+    const nm = document.createElement("span"); nm.className = "n"; nm.textContent = it.gap ? "Free" : it.b.label;
+    const du = document.createElement("span"); du.className = "d"; du.textContent = dur(it.e - it.s);
+    el.append(tm, nm, du);
+    el.addEventListener("click", ()=>{
+      if(it.gap) openForm(null, [it.s, Math.min(it.e, it.s+60)]); else openForm(it.b);
+    });
+    list.append(el);
+  });
+}
+
+function drawChips(){
+  const wrap = $("bDays"); wrap.innerHTML = "";
+  DAYS.forEach((n,i)=>{
+    const b = document.createElement("button"); b.type = "button"; b.textContent = n.slice(0,2); b.title = DAYS_LONG[i];
+    b.setAttribute("aria-pressed", chipDays.has(i) ? "true" : "false");
+    b.addEventListener("click", ()=>{
+      if(editId){ chipDays = new Set([i]); }                 // editing: move to one day
+      else if(chipDays.has(i)){ if(chipDays.size > 1) chipDays.delete(i); }
+      else chipDays.add(i);
+      drawChips();
+    });
+    wrap.append(b);
+  });
+}
+function openForm(b, pre){
+  editId = b ? b.id : null;
+  chipDays = new Set([b ? b.day : selDay]);
+  $("blockForm").hidden = false;
+  $("bLabel").value = b ? b.label : "";
+  $("bStart").value = b ? b.start : (pre ? fmt(pre[0]) : "18:00");
+  $("bEnd").value   = b ? b.end   : (pre ? fmt(pre[1]) : "19:00");
+  $("bDaysHint").textContent = b ? "Pick a different day to move this block" : "Pick every day this repeats on";
+  $("bDelete").hidden = !b;
+  $("bMsg").textContent = "";
+  drawChips();
+  $("bLabel").focus();
+}
+function closeForm(){ $("blockForm").hidden = true; editId = null; }
+function touchSchedule(){ state.schedule.updated = Date.now(); save(); closeForm(); render(); }
+
+$("addBlock").onclick = ()=> openForm(null);
+$("bCancel").onclick = closeForm;
+$("bed").onchange = e=>{ state.settings.bed = e.target.value || "22:30"; save(); render(); };
+$("blockForm").onsubmit = e=>{
+  e.preventDefault();
+  const label = $("bLabel").value.trim(), start = $("bStart").value, end = $("bEnd").value;
+  const fail = m => { $("bMsg").textContent = m; };
+  if(!label) return fail("Give it a name.");
+  if(!start || !end) return fail("Set a start and an end time.");
+  if(toMin(end) <= toMin(start)) return fail("The end has to be after the start, on the same day.");
+  if(!chipDays.size) return fail("Pick at least one day.");
+  const blocks = state.schedule.blocks;
+  if(editId){
+    const b = blocks.find(x => x.id === editId);
+    if(b){ Object.assign(b, {label, start, end, day:[...chipDays][0]}); selDay = b.day; }
+  }else{
+    [...chipDays].sort().forEach(d => blocks.push({id:newId(), day:d, start, end, label}));
+  }
+  touchSchedule();
+};
+$("bDelete").onclick = ()=>{
+  state.schedule.blocks = state.schedule.blocks.filter(x => x.id !== editId);
+  touchSchedule();
+};
+// ----------------------------------------------------------------------
 
 function save(){
   try{ localStorage.setItem("daily-basics", JSON.stringify(state)); }catch(e){}
@@ -264,8 +532,10 @@ $("importFile").onchange = async e=>{
     state = {
       unlocked: Math.max(inc.unlocked||1, state.unlocked||1),
       settings: Object.assign({}, state.settings, inc.settings||{}),
-      days
+      days,
+      schedule: mergeSchedule(state.schedule, inc.schedule)
     };
+    ensureShape();
     save(); render();
     $("status").textContent = "Imported and merged your backup.";
   }catch(err){
@@ -282,6 +552,7 @@ try{
   const raw = localStorage.getItem("daily-basics");
   if(raw){ const s = JSON.parse(raw); if(s && s.days) state = Object.assign(state, s); }
 }catch(e){}
+ensureShape();
 render();
 $("status").textContent = "Saved on this device.";
 
@@ -303,8 +574,10 @@ $("status").textContent = "Saved on this device.";
       state = {
         unlocked: Math.max(remote.unlocked||1, state.unlocked||1),
         settings: Object.assign({}, state.settings, remote.settings||{}),
-        days
+        days,
+        schedule: mergeSchedule(state.schedule, remote.schedule)
       };
+      ensureShape();
     }
     render();
     $("status").textContent = "Synced to your account — works on phone and laptop.";
