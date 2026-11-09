@@ -1,5 +1,5 @@
 // Network-first so updates show up; falls back to cache when offline.
-const CACHE = "daily-basics-v1";
+const CACHE = "daily-basics-v2";
 const FILES = ["./", "index.html", "manifest.json", "icon.svg"];
 
 self.addEventListener("install", e => {

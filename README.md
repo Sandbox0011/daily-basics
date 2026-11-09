@@ -9,6 +9,15 @@ Habits, in order:
 3. Food logged (in MyFitnessPal / MacroFactor)
 4. Step target hit
 
+## My week
+
+A weekly schedule lives in the same page, under the 14-day grid. Add the fixed parts of a normal week (work, training, morning routine) and it shows the free gaps, both as a week map and per day.
+
+- Tap a block to edit, move or delete it. Tap a dashed "Free" gap to plan something into it.
+- When adding, pick several days at once for anything that repeats.
+- Free gaps (30+ minutes) are counted between the **Wake-up time** and **Bedtime** in Targets, so set those to match your real day.
+- It's included in Export / Import, and the most recently edited copy wins when merging.
+
 ## Running it
 
 It's a single static `index.html` with no build step. Open it in a browser, or host it free with GitHub Pages:
